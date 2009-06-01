@@ -10,21 +10,37 @@ module BreadcrumbTrailHelper
     case options[:type]
       when :ol, :ul
         @crumbs[0..-2].each do |c|
-          list_items << content_tag(:li, link_to(h(c[:label]), c[:link]), :class => c[:class]) if c[:link]
-          list_items << content_tag(:li, h(c[:label]), :class => c[:class]) unless c[:link]
+          list_items << generate_crumb(c, :li)
         end
-        c = @crumbs.last
-        list_items << content_tag(:li, h(c[:label]), :class => c[:class])
+        list_items << generate_last_crumb(@crumbs.last, :li)
         content_tag options[:type], list_items, :class => options[:class]
+
       when :p
         @crumbs[0..-2].each do |c|
-          list_items << link_to(h(c[:label]), c[:link], :class => c[:class]) if c[:link]
-          list_items << h(c[:label]) unless c[:link]
+          list_items << generate_crumb(c)
         end
-        c = @crumbs.last
-        list_items << h(c[:label]) unless c[:link]
+        list_items << generate_last_crumb(@crumbs.last)
         content_tag :p, list_items.join(options[:separator]), :class => options[:class]
-      else
     end
+  end
+
+  def generate_crumb(c, type=nil)
+    crumb = ''
+    if c[:link]
+      crumb = link_to(h(c[:label]), c[:link])
+    else
+      crumb = h(c[:label])
+    end
+
+    if type
+      content_tag(type, crumb, :class => c[:class] )
+    else
+      crumb
+    end
+  end
+
+  def generate_last_crumb(c, type=nil)
+    c.delete(:link)
+    generate_crumb(c, type)
   end
 end
