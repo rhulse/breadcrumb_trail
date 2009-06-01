@@ -1,30 +1,115 @@
 Breadcrumb Trail
 ================
 
-Adds a breadcrumb trail to your Rails application.
+This plugin generates a breadcrumb trail based on crumbs added in your application.
 
-In your action:
+It automatically adds the home link at the start of the crumbs, and also removes
+the link from the last item in the trail (it assumes the last link is the current page)
 
-  add_crumb :label => 'Admin', :link => administrators_path
-  add_crumb :label => 'Users', :link => admin_users_path
-  add_crumb :label => @user.name
+Setup
+-----
 
-In your layout or view:
+Crumbs should be layered through you application as follows:
 
-  <%= crumbs %>
-  
-Generates something like:
+In a controller, setup a before filter
 
-<ol class="breadcrumb">
-  <li class="first"><a href="/">Home</a></li>
-  <li><a href="/administrators">Admin</a></li>
-  <li><a href="/admin/users">Users</a></li>
-  <li>Nigel Ramsay</li>
-</ol>
+	before_filter :setup_crumbs
+
+	...
+
+  private
+	def setup_crumbs
+		add_crumb :label => 'Users', :link => admin_users_path
+	end
+
+This adds the current controller to the trail. The plugin will remove the link from
+the last item in the crumbs automatically (to allow for the index page)
+
+Then in the actions:
+
+	def show
+  	add_crumb :label => @user.name
+		etc
+	end
+
+	def edit
+  	add_crumb :label => 'Editing ' + @user.name
+		etc
+	end
+
+Options
+-------
+
+You can specify :class => 'name' if you want to add a css class to any particular crumb.
+By default the first crumb in ol and li style have class="first" to allow for css styling
+
+NB: You should have a link for every crumb. If you forget it will be rendered with no link.
+
+Rendering the Breadcrumb trail
+------------------------------
+There are three options for rendering
+
+<%= render_crumbs %>
+
+	Generates something like:
+
+	<ol class="breadcrumb">
+	  <li class="first"><a href="/">Home</a></li>
+	  <li><a href="/administrators">Admin</a></li>
+	  <li><a href="/admin/users">Users</a></li>
+	  <li>Nigel Ramsay</li>
+	</ol>
+
+<%= render_crumbs :type => :ul %>
+
+	Generates something like:
+
+	<ul class="breadcrumb">
+	  <li class="first"><a href="/">Home</a></li>
+	  <li><a href="/administrators">Admin</a></li>
+	  <li><a href="/admin/users">Users</a></li>
+	  <li>Nigel Ramsay</li>
+	</ol>
+
+<%= render_crumbs :type => :p %>
+
+	Generates something like:
+
+	<p class="breadcrumb">
+	  <a href="/">Home</a> &raquo;
+	  <a href="/administrators">Admin</a> &raquo;
+	  <a href="/admin/users">Users</a> &raquo;
+	  <span>Nigel Ramsay</span>
+	</p>
+
+In this last case you can specify and alternative separator:
+
+<%= render_crumbs :type => :p, :separator => '>' %>
+
+If you specify nil for this you can style the links with CSS (the first is class="first"),
+and the last crumb (linkless) is wrapped in a plain <span>
 
 Style
 -----
 
-You should use CSS to style the breadcrumb trail. See the example in public/stylesheets.
+You can use CSS to style the breadcrumb trail. See the example in public/stylesheets.
+
+
+Applications in subfolders
+-------------------------
+
+If your application lives at a non root url (e.g. "/contacts"), and you
+want the Home URL to still point to the site root then
+you will need a before_filter in your application controller:
+
+def start_crumbs
+  add_root_crumb :link => "/", :label => 'Home', :class => 'first'
+  add_crumb :label => 'Contacts', :link => root_path
+end
+
+This overrides the root crumb and replace it with "/". The second crumb will point to
+the root of your application
+
 
 Copyright (c) 2008 Able Technology Limited (http://www.abletech.co.nz/blog), released under the MIT license
+Additions Copyright (c) 2009 Richard Hulse, also released under the MIT license
